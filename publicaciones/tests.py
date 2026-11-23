@@ -119,3 +119,9 @@ class PruebasFormularios(TestCase):
         self.assertEqual(respuesta.status_code, 200)
         self.assertContains(respuesta, "¿Seguro que quieres eliminar")
         self.assertEqual(Publicacion.objects.count(), 1)
+
+    def test_eliminar_requiere_sesion(self):
+        url = reverse("publicacion_eliminar", kwargs={"pk": self.publicacion.pk})
+        respuesta = self.client.post(url)
+        self.assertRedirects(respuesta, f"{reverse('login')}?next={url}")
+        self.assertEqual(Publicacion.objects.count(), 1)
