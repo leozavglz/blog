@@ -13,7 +13,7 @@
       <h2><a href="{{ publicacion.get_absolute_url }}">{{ publicacion.titulo }}</a></h2>
       <p class="meta">Por {{ publicacion.autor }} · {{ publicacion.fecha|date:"j \d\e F \d\e Y" }}</p>
       <p>{{ publicacion.contenido|truncatewords:30 }}</p>
-      {% if user.is_authenticated %}
+      {% if user == publicacion.autor %}
         <p class="acciones">
           <a href="{% url 'publicacion_editar' publicacion.pk %}">Editar</a>
         </p>
