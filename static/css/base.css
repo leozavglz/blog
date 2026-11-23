@@ -49,3 +49,12 @@ main {
   color: #64748b;
   font-size: 14px;
 }
+
+footer {
+  text-align: center;
+  color: #64748b;
+  font-size: 14px;
+  padding: 24px 16px;
+  border-top: 1px solid #e2e8f0;
+  margin-top: 32px;
+}

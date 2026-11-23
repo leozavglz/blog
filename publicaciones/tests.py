@@ -48,3 +48,8 @@ class PruebasBlog(TestCase):
         self.assertEqual(sin_respuesta.status_code, 404)
         self.assertContains(respuesta, "Un buen título")
         self.assertTemplateUsed(respuesta, "publicacion_detalle.html")
+        
+    def test_detalle_tiene_enlace_volver(self):
+        respuesta = self.client.get(reverse("publicacion_detalle", kwargs={"pk": self.publicacion.pk}))
+        self.assertContains(respuesta, "Volver al inicio")
+        self.assertContains(respuesta, f'href="{reverse("inicio")}"')
