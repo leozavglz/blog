@@ -149,6 +149,11 @@ STORAGES = {  # nuevo
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
+# Cuentas de usuario
+LOGIN_URL = "login"  # nuevo
+LOGIN_REDIRECT_URL = "inicio"  # nuevo
+LOGOUT_REDIRECT_URL = "inicio"  # nuevo
+
 # HTTPS
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")  # nuevo
 SECURE_SSL_REDIRECT = env.bool("SECURE_SSL_REDIRECT", default=False)  # nuevo
