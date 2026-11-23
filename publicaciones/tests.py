@@ -67,28 +67,34 @@ class PruebasFormularios(TestCase):
             titulo="Original", autor=cls.usuario, contenido="Texto original"
         )
 
-    def test_crear_publicacion(self):
-        respuesta = self.client.post(
-            reverse("publicacion_nueva"),
-            {
-                "titulo": "Nueva",
-                "autor": self.usuario.pk,
-                "contenido": "Contenido nuevo",
-            },
-        )
-        nueva = Publicacion.objects.get(titulo="Nueva")
-        self.assertRedirects(respuesta, nueva.get_absolute_url())
+    def test_crear_publicacion_requiere_sesion(self):
+        respuesta = self.client.get(reverse("publicacion_nueva"))
+        self.assertRedirects(respuesta, "/cuentas/login/?next=/publicacion/nueva/")
 
-    def test_crear_sin_titulo_muestra_error(self):
+    def test_vista_crear_publicacion(self):
+        self.client.force_login(self.usuario)
         respuesta = self.client.post(
             reverse("publicacion_nueva"),
-            {"titulo": "", "autor": self.usuario.pk, "contenido": "Sin título"},
+            {"titulo": "Nuevo título", "contenido": "Nuevo texto"},
+        )
+        self.assertEqual(respuesta.status_code, 302)
+        publicacion = Publicacion.objects.get(titulo="Nuevo título")
+        self.assertRedirects(respuesta, publicacion.get_absolute_url())
+        self.assertEqual(publicacion.contenido, "Nuevo texto")
+        self.assertEqual(publicacion.autor, self.usuario)
+
+    def test_vista_crear_publicacion_sin_titulo(self):
+        self.client.force_login(self.usuario)
+        respuesta = self.client.post(
+            reverse("publicacion_nueva"),
+            {"titulo": "", "contenido": "Nuevo texto"},
         )
         self.assertEqual(respuesta.status_code, 200)
-        self.assertIn("titulo", respuesta.context["form"].errors)
+        self.assertContains(respuesta, "Este campo es obligatorio.")
         self.assertEqual(Publicacion.objects.count(), 1)
 
-    def test_editar_publicacion(self):
+    def test_vista_editar_publicacion(self):
+        self.client.force_login(self.usuario)
         respuesta = self.client.post(
             reverse("publicacion_editar", kwargs={"pk": self.publicacion.pk}),
             {"titulo": "Editado", "contenido": "Texto editado"},
@@ -97,7 +103,8 @@ class PruebasFormularios(TestCase):
         self.publicacion.refresh_from_db()
         self.assertEqual(self.publicacion.titulo, "Editado")
 
-    def test_eliminar_publicacion(self):
+    def test_vista_eliminar_publicacion(self):
+        self.client.force_login(self.usuario)
         respuesta = self.client.post(
             reverse("publicacion_eliminar", kwargs={"pk": self.publicacion.pk})
         )
@@ -105,6 +112,7 @@ class PruebasFormularios(TestCase):
         self.assertEqual(Publicacion.objects.count(), 0)
 
     def test_eliminar_get_pide_confirmacion(self):
+        self.client.force_login(self.usuario)
         respuesta = self.client.get(
             reverse("publicacion_eliminar", kwargs={"pk": self.publicacion.pk})
         )
