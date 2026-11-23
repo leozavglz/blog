@@ -139,3 +139,12 @@ h1 {
 .acciones a {
   margin-right: 16px;
 }
+
+.formulario > div {
+  margin-bottom: 16px;
+}
+
+.helptext {
+  color: #64748b;
+  font-size: 14px;
+}
