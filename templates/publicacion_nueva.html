@@ -7,7 +7,14 @@
   <h1>Nueva publicación</h1>
   <form action="" method="post" class="formulario">
     {% csrf_token %}
-    {{ form.as_p }}
+    {% for campo in form %}
+      <p>
+        {{ campo.label_tag }}
+        {{ campo }}
+        {% if campo.help_text %}<small>{{ campo.help_text }}</small>{% endif %}
+        {{ campo.errors }}
+      </p>
+    {% endfor %}
     <button type="submit" class="boton">Guardar</button>
   </form>
 {% endblock contenido %}
