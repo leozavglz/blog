@@ -125,3 +125,55 @@ class PruebasFormularios(TestCase):
         respuesta = self.client.post(url)
         self.assertRedirects(respuesta, f"{reverse('login')}?next={url}")
         self.assertEqual(Publicacion.objects.count(), 1)
+
+
+class PruebasPermisos(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        Usuario = get_user_model()
+        cls.autor = Usuario.objects.create_user(
+            username="autor", password="clave-de-prueba"
+        )
+        cls.otro = Usuario.objects.create_user(
+            username="otro", password="clave-de-prueba"
+        )
+        cls.publicacion = Publicacion.objects.create(
+            titulo="Original", autor=cls.autor, contenido="Texto original"
+        )
+        cls.url_editar = reverse(
+            "publicacion_editar", kwargs={"pk": cls.publicacion.pk}
+        )
+        cls.url_eliminar = reverse(
+            "publicacion_eliminar", kwargs={"pk": cls.publicacion.pk}
+        )
+
+    def test_otro_usuario_no_puede_abrir_editar(self):
+        self.client.force_login(self.otro)
+        respuesta = self.client.get(self.url_editar)
+        self.assertEqual(respuesta.status_code, 403)
+
+    def test_otro_usuario_no_puede_editar(self):
+        self.client.force_login(self.otro)
+        respuesta = self.client.post(
+            self.url_editar, {"titulo": "Hackeado", "contenido": "Texto cambiado"}
+        )
+        self.assertEqual(respuesta.status_code, 403)
+        self.publicacion.refresh_from_db()
+        self.assertEqual(self.publicacion.titulo, "Original")
+
+    def test_otro_usuario_no_puede_eliminar(self):
+        self.client.force_login(self.otro)
+        respuesta = self.client.post(self.url_eliminar)
+        self.assertEqual(respuesta.status_code, 403)
+        self.assertTrue(Publicacion.objects.filter(pk=self.publicacion.pk).exists())
+
+    def test_enlaces_solo_para_el_autor(self):
+        url_detalle = self.publicacion.get_absolute_url()
+        self.client.force_login(self.autor)
+        respuesta = self.client.get(url_detalle)
+        self.assertContains(respuesta, self.url_editar)
+        self.assertContains(respuesta, self.url_eliminar)
+        self.client.force_login(self.otro)
+        respuesta = self.client.get(url_detalle)
+        self.assertNotContains(respuesta, self.url_editar)
+        self.assertNotContains(respuesta, self.url_eliminar)
